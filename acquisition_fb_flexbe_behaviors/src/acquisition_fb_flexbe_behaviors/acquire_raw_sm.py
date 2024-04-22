@@ -8,8 +8,12 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCallState
+from acquisition_fb_flexbe_states.set_name_and_path_state import MultiServiceCallState as acquisition_fb_flexbe_states__MultiServiceCallState
+from acquisition_fb_flexbe_states.set_name_and_path_state import MultiSetNameAndPathState
+from flexbe_states.calculation_state import CalculationState
 from flexbe_states.log_state import LogState
+from flexbe_states.operator_decision_state import OperatorDecisionState
+from flexbe_states.wait_state import WaitState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -31,7 +35,7 @@ class acquire_rawSM(Behavior):
 		self.name = 'acquire_raw'
 
 		# parameters of this behavior
-		self.add_parameter('activity_name', '"walking"')
+		self.add_parameter('activity_name', 'walking')
 		self.add_parameter('activity_duration', 10)
 		self.add_parameter('subject_num', 0)
 		self.add_parameter('num_reps', 1)
@@ -48,9 +52,12 @@ class acquire_rawSM(Behavior):
 
 
 	def create(self):
+		save_dir = "/srv/host_data/tmp"
 		# x:470 y:542, x:130 y:365
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
+		_state_machine.userdata.activity_save_dir = ""
+		_state_machine.userdata.activity_save_name = ""
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -65,23 +72,67 @@ class acquire_rawSM(Behavior):
 										transitions={'done': 'start_imus'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:633 y:244
-			OperatableStateMachine.add('start_ik',
-										MultiServiceCallState(multi_service_list="/ik_lowerbody_node/start_now"),
-										transitions={'done': 'finished', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+			# x:433 y:387
+			OperatableStateMachine.add('addone_to_num_reps',
+										CalculationState(calculation=lambda x: x+1),
+										transitions={'done': 'multiple_setpath'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'input_value': 'activity_counter', 'output_value': 'activity_counter'})
 
-			# x:236 y:117
-			OperatableStateMachine.add('start_imus',
-										MultiServiceCallState(multi_service_list=["/ximu_torso/start_now",                 "/ximu_pelvis/start_now",                 "/ximu_femur_l/start_now",                 "/ximu_femur_r/start_now",                 "/ximu_tibia_l/start_now",                 "/ximu_tibia_r/start_now",                 "/ximu_talus_l/start_now",                 "/ximu_talus_r/start_now",]),
-										transitions={'done': 'don_imus', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+			# x:641 y:51
+			OperatableStateMachine.add('check_if_imus_on',
+										LogState(text="Dummy state: check if IMUs are blinking then you can start moving them around. BTW, this should be a wait for transform or somethign.", severity=Logger.REPORT_HINT),
+										transitions={'done': 'don_imus'},
+										autonomy={'done': Autonomy.Full})
 
-			# x:599 y:104
+			# x:843 y:50
 			OperatableStateMachine.add('don_imus',
 										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
 										transitions={'done': 'start_ik'},
 										autonomy={'done': Autonomy.Full})
+
+			# x:808 y:278
+			OperatableStateMachine.add('multiple_setpath',
+										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path"),
+										transitions={'done': 'start_recording', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
+
+			# x:613 y:544
+			OperatableStateMachine.add('record_another',
+										OperatorDecisionState(outcomes=["yes", "no"], hint=None, suggestion=None),
+										transitions={'yes': 'addone_to_num_reps', 'no': 'finished'},
+										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
+
+			# x:782 y:175
+			OperatableStateMachine.add('start_ik',
+										acquisition_fb_flexbe_states__MultiServiceCallState(multi_service_list="/ik_lowerbody_node/start_now"),
+										transitions={'done': 'multiple_setpath', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:237 y:53
+			OperatableStateMachine.add('start_imus',
+										acquisition_fb_flexbe_states__MultiServiceCallState(multi_service_list=["/ximu_torso/start_now",                 "/ximu_pelvis/start_now",                 "/ximu_femur_l/start_now",                 "/ximu_femur_r/start_now",                 "/ximu_tibia_l/start_now",                 "/ximu_tibia_r/start_now",                 "/ximu_talus_l/start_now",                 "/ximu_talus_r/start_now",]),
+										transitions={'done': 'wait_for_things_to_be_done', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:826 y:390
+			OperatableStateMachine.add('start_recording',
+										LogState(text="Start Recording", severity=Logger.REPORT_HINT),
+										transitions={'done': 'Record_time'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:444 y:54
+			OperatableStateMachine.add('wait_for_things_to_be_done',
+										WaitState(wait_time=5),
+										transitions={'done': 'check_if_imus_on'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:828 y:518
+			OperatableStateMachine.add('Record_time',
+										WaitState(wait_time=self.activity_duration),
+										transitions={'done': 'record_another'},
+										autonomy={'done': Autonomy.Off})
 
 
 		return _state_machine

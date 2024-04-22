@@ -16,7 +16,7 @@
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="text" name="activity_name" default=""walking"" label="activity_name" hint="Sets the activity_name" />
+		<param type="text" name="activity_name" default="walking" label="activity_name" hint="Sets the activity_name" />
 
 		<param type="numeric" name="activity_duration" default="10" label="activity_duration" hint="Sets the activity_duration">
 			<min value="0" />
