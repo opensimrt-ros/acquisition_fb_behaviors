@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="acquire_raw">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.acquire_raw_sm" class="acquire_rawSM" />
+	<tagstring></tagstring>
+	<author>frekle</author>
+	<date>Mon Apr 22 2024</date>
+	<description>
+		acquire from raw imus
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
