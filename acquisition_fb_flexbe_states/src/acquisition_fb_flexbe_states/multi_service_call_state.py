@@ -7,26 +7,31 @@ from std_srvs.srv import EmptyRequest
 
 class MultiServiceCallState(EventState):
     '''
-    Example for a state to demonstrate which functionality is available for state implementation.
-    This example lets the behavior wait until the given multi_service_list has passed since the behavior has been started.
+    THis will call multiple services on a list with EmptyRequest std_srvs messages
 
-    -- multi_service_list 	float 	Time which needs to have passed since the behavior started.
+    -- prefix               str     string that will be a prefix of all services in the list
+    -- multi_service_list 	list 	list of services to be called.
+    -- predicate            str     name that will be appended to every srv
 
-    <= done 			Given time has passed.
-    <= failed 				Example for a failure outcome.
+    <= done 			    it worked..
+    <= failed 				some error occurred when calling services.
 
     '''
 
-    def __init__(self, multi_service_list):
+    def __init__(self, multi_service_list, predicate,prefix):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(MultiServiceCallState, self).__init__(outcomes = ['done', 'failed'])
 
         # Store state parameter for later use.
-
+        self._multi_service_list = []
+        self._predicate = predicate
+        self._prefix = prefix
         if type(multi_service_list) == type(""):
             multi_service_list = [multi_service_list]
-        self._multi_service_list = multi_service_list
-        Logger.loginfo("received list: %s" % multi_service_list)
+
+        for an_srv_name in multi_service_list:
+            self._multi_service_list.append(self._prefix+an_srv_name+self._predicate)
+        Logger.loginfo("received list of services to be called: %s" % self._multi_service_list)
         self._multi_service_plex = multiservice_plex.MultiServiceCaller(self._multi_service_list)
 
         # The constructor is called when building the state machine, not when actually starting the behavior.
@@ -42,7 +47,7 @@ class MultiServiceCallState(EventState):
         if self._multi_service_plex.error_list == []:
             return 'done' # One of the outcomes declared above.
         else:
-            Logger.logwarn(self._multi_service_plex.error_list)
+            Logger.logwarn(str(self._multi_service_plex.error_list))
             return 'failed'
 
 

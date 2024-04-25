@@ -7,17 +7,23 @@ from opensimrt_msgs.srv import SetFileNameSrv, SetFileNameSrvRequest, SetFileNam
 
 class MultiSetNameAndPathState(EventState):
     '''
-    Example for a state to demonstrate which functionality is available for state implementation.
-    This example lets the behavior wait until the given multi_service_list has passed since the behavior has been started.
 
-    -- multi_service_list 	float 	Time which needs to have passed since the behavior started.
+    sets path
+
+    -- multi_service_list str[]     list of srvs
+    -- prefix           str         prefix of srvs
+    -- suffix           stf         suffix of srvs
+
+    ># activity...      object[]    Input(s) to the calculation function as a list of userdata.
+    #> activity...		object		Latest message on the given topic of the respective type.
+    
 
     <= done 			Given time has passed.
     <= failed 				Example for a failure outcome.
 
     '''
 
-    def __init__(self, multi_service_list):
+    def __init__(self, multi_service_list, prefix, suffix, activity_name, save_dir, subject_num):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(MultiSetNameAndPathState, self).__init__(outcomes = ['done', 'failed'],
                                                         input_keys = ['activity_counter', 'activity_save_dir','activity_save_name'],
@@ -25,15 +31,23 @@ class MultiSetNameAndPathState(EventState):
 
         # Store state parameter for later use.
 
+        self._activity_name = activity_name
+        self._save_dir = save_dir
+        self._subject_num = subject_num
         if type(multi_service_list) == type(""):
             multi_service_list = [multi_service_list]
-        self._multi_service_list = multi_service_list
+
+        self._multi_service_list = []
+        for a_srv in multi_service_list:
+            self._multi_service_list.append(prefix+a_srv+suffix)
+
         Logger.loginfo("received list: %s" % multi_service_list)
         self._multi_service_plex = multiservice_plex.MultiServiceCaller(self._multi_service_list, SetFileNameSrv(), SetFileNameSrvResponse())
 
         # The constructor is called when building the state machine, not when actually starting the behavior.
         # Thus, we cannot save the starting time now and will do so later.
         self._start_time = None
+        self._responses = None
 
     def execute(self, userdata):
         # This method is called periodically while the state is active.
@@ -41,10 +55,12 @@ class MultiSetNameAndPathState(EventState):
         # If no outcome is returned, the state will stay active.
 
 #		if rospy.Time.now() - self._start_time > self._multi_service_list:
-        if self._multi_service_plex.error_list == []:
+        if self._multi_service_plex.error_list == [] and not self._responses == None:
+            #Logger.loginfo("responses ok:%s"%self._responses)
             return 'done' # One of the outcomes declared above.
         else:
-            Logger.logwarn(self._multi_service_plex.error_list)
+            Logger.logwarn(str(self._responses))
+            Logger.logwarn(str(self._multi_service_plex.error_list))
             return 'failed'
 
 
@@ -65,19 +81,22 @@ class MultiSetNameAndPathState(EventState):
         # we maybe dont want this, so we can rerecord another?
         ##userdata.activity_counter +=1
         if userdata.activity_save_name == "":
-            userdata.activity_save_name = self.activity_name + str(userdata.activity_counter)
             Logger.loginfo("activity filename not set, setting now")
+        
+        userdata.activity_save_name = self._activity_name + str(userdata.activity_counter)
+        
         if userdata.activity_save_dir == "":
-            userdata.activity_save_dir = save_dir + str(self.subject_num)
             Logger.loginfo("activity filename not set, setting now")
+        
+        userdata.activity_save_dir = self._save_dir + str(self._subject_num)
         
         
 
         req = SetFileNameSrvRequest()
         req.name = userdata.activity_save_name
         req.path = userdata.activity_save_dir
-        Logger.log(str(req),Logger.REPORT_HINT )
-        self._multi_service_plex(req)
+        Logger.log("my req msg: "+str(req),Logger.REPORT_HINT )
+        _, self._responses = self._multi_service_plex(req)
 
 
     def on_exit(self, userdata):

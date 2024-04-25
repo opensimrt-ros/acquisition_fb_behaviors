@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="acquire_tmux">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.acquire_tmux_sm" class="acquire_tmuxSM" />
+	<tagstring>acquisition</tagstring>
+	<author>frekle</author>
+	<date>Mon Apr 22 2024</date>
+	<description>
+		acquire with a more complicated structure
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="activity_name" default="walking" label="activity_name" hint="Sets the activity_name" />
+
+		<param type="numeric" name="activity_duration" default="10" label="activity_duration" hint="Sets the activity_duration">
+			<min value="0" />
+			<max value="1200" />
+		</param>
+
+		<param type="numeric" name="subject_num" default="0" label="subject_num" hint="Sets the subject_num">
+			<min value="0" />
+			<max value="100" />
+		</param>
+
+		<param type="numeric" name="num_reps" default="1" label="num_reps" hint="Sets the num_reps">
+			<min value="0" />
+			<max value="100" />
+		</param>
+
+		<param type="boolean" name="run_nodes" default="False" label="run_nodes" hint="Sets the run_nodes" />
+
+	</params>
+
+
+</behavior>

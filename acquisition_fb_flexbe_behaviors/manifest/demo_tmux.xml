@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="demo_tmux">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.demo_tmux_sm" class="demo_tmuxSM" />
+	<tagstring>demo</tagstring>
+	<author>me</author>
+	<date>Wed Apr 24 2024</date>
+	<description>
+		demo_tmux
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

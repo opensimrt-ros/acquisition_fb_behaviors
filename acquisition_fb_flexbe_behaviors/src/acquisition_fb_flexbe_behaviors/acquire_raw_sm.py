@@ -8,7 +8,8 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from acquisition_fb_flexbe_states.set_name_and_path_state import MultiServiceCallState as acquisition_fb_flexbe_states__MultiServiceCallState
+from acquisition_fb_flexbe_states.check_if_alive import HostAliveState
+from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCallState
 from acquisition_fb_flexbe_states.set_name_and_path_state import MultiSetNameAndPathState
 from flexbe_states.calculation_state import CalculationState
 from flexbe_states.log_state import LogState
@@ -16,6 +17,7 @@ from flexbe_states.operator_decision_state import OperatorDecisionState
 from flexbe_states.wait_state import WaitState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
+#from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCallState 
 
 # [/MANUAL_IMPORT]
 
@@ -66,11 +68,11 @@ class acquire_rawSM(Behavior):
 
 
 		with _state_machine:
-			# x:64 y:56
-			OperatableStateMachine.add('turn_on_imus',
-										LogState(text="Turn on imus in a line", severity=Logger.REPORT_HINT),
-										transitions={'done': 'start_imus'},
-										autonomy={'done': Autonomy.Full})
+			# x:31 y:40
+			OperatableStateMachine.add('is_router_on',
+										HostAliveState(hostname="192.168.1.1", waittime=200),
+										transitions={'continue': 'turn_on_imus', 'failed': 'turn_on_router'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:433 y:387
 			OperatableStateMachine.add('addone_to_num_reps',
@@ -78,6 +80,12 @@ class acquire_rawSM(Behavior):
 										transitions={'done': 'multiple_setpath'},
 										autonomy={'done': Autonomy.Off},
 										remapping={'input_value': 'activity_counter', 'output_value': 'activity_counter'})
+
+			# x:1070 y:115
+			OperatableStateMachine.add('check_heading',
+										MultiServiceCallState(multi_service_list="/ik/pelvis/wtfh/calibrate_heading"),
+										transitions={'done': 'start_ik', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Full, 'failed': Autonomy.Off})
 
 			# x:641 y:51
 			OperatableStateMachine.add('check_if_imus_on',
@@ -88,14 +96,20 @@ class acquire_rawSM(Behavior):
 			# x:843 y:50
 			OperatableStateMachine.add('don_imus',
 										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
-										transitions={'done': 'start_ik'},
+										transitions={'done': 'external_pose_calib'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:808 y:278
+			# x:981 y:23
+			OperatableStateMachine.add('external_pose_calib',
+										MultiServiceCallState(multi_service_list=["/ik/pelvis/pose_average/calibrate_pose"]),
+										transitions={'done': 'check_heading', 'failed': 'external_pose_calib'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:784 y:268
 			OperatableStateMachine.add('multiple_setpath',
-										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path"),
+										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
 										transitions={'done': 'start_recording', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										autonomy={'done': Autonomy.Full, 'failed': Autonomy.Off},
 										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
 
 			# x:613 y:544
@@ -104,15 +118,15 @@ class acquire_rawSM(Behavior):
 										transitions={'yes': 'addone_to_num_reps', 'no': 'finished'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
 
-			# x:782 y:175
+			# x:1043 y:215
 			OperatableStateMachine.add('start_ik',
-										acquisition_fb_flexbe_states__MultiServiceCallState(multi_service_list="/ik_lowerbody_node/start_now"),
+										MultiServiceCallState(multi_service_list="/ik_lowerbody_node/start_now"),
 										transitions={'done': 'multiple_setpath', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:237 y:53
+			# x:315 y:130
 			OperatableStateMachine.add('start_imus',
-										acquisition_fb_flexbe_states__MultiServiceCallState(multi_service_list=["/ximu_torso/start_now",                 "/ximu_pelvis/start_now",                 "/ximu_femur_l/start_now",                 "/ximu_femur_r/start_now",                 "/ximu_tibia_l/start_now",                 "/ximu_tibia_r/start_now",                 "/ximu_talus_l/start_now",                 "/ximu_talus_r/start_now",]),
+										MultiServiceCallState(multi_service_list=["/ximu_torso/start_now",                 "/ximu_pelvis/start_now",                 "/ximu_femur_l/start_now",                 "/ximu_femur_r/start_now",                 "/ximu_tibia_l/start_now",                 "/ximu_tibia_r/start_now",                 "/ximu_talus_l/start_now",                 "/ximu_talus_r/start_now",]),
 										transitions={'done': 'wait_for_things_to_be_done', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -120,6 +134,18 @@ class acquire_rawSM(Behavior):
 			OperatableStateMachine.add('start_recording',
 										LogState(text="Start Recording", severity=Logger.REPORT_HINT),
 										transitions={'done': 'Record_time'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:263 y:22
+			OperatableStateMachine.add('turn_on_imus',
+										LogState(text="Turn on imus in a line", severity=Logger.REPORT_HINT),
+										transitions={'done': 'start_imus'},
+										autonomy={'done': Autonomy.Full})
+
+			# x:30 y:210
+			OperatableStateMachine.add('turn_on_router',
+										LogState(text="turn on router!!", severity=Logger.REPORT_HINT),
+										transitions={'done': 'failed'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:444 y:54
