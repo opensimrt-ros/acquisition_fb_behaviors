@@ -19,7 +19,6 @@ from flexbe_states.operator_decision_state import OperatorDecisionState
 from flexbe_states.wait_state import WaitState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
-#from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCallState 
 
 # [/MANUAL_IMPORT]
 
@@ -57,6 +56,12 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 		# O 265 11 /Calibration_and_Heading
 		# Right now we are not using these results to calibrate the IK node just yet. |n|nThe only guys that use this are the resolve headings service to show the imus and the external heading calibrator which uses the pelvis avg quaternion
 
+		# O 9 215 /Check_If_Devices_Are_On
+		# TODO: This should be a part of the device monitoring bit, so don't have to run this as a state and also since they may fail at any point
+
+		# ! 328 161 
+		# TODO:Here we also need to make sure we are loading the correct models every time!
+
 		# O 519 273 /Calibration_and_Heading
 		# This published the tfs for showing the IMUs on rViz|n|nNot really necessary, since we are not using this inside the node just yet
 
@@ -73,7 +78,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 		imu_list = ["torso","pelvis","femur_r","tibia_r","talus_r","femur_l","tibia_l","talus_l"]
 		node_start_list = ["/ik_lowerbody_node","/moticon_insoles","/id_node"]
 		tmux_yaml_file3 = "acquisition_imus_insoles.yaml"
-		# x:979 y:893, x:350 y:309
+		# x:1421 y:812, x:350 y:309
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
 		_state_machine.userdata.activity_save_dir = ""
@@ -188,7 +193,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 										transitions={'continue': 'is_insole_android_device_on', 'failed': 'turn_on_router'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:211 y:130
+			# x:376 y:282
 			OperatableStateMachine.add('turn_on_insole_android_device',
 										LogState(text="turn on insole android device and make sure it is connected to the router network!", severity=Logger.REPORT_ERROR),
 										transitions={'done': 'done'},
@@ -200,7 +205,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 										transitions={'done': 'done'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:221 y:40
+			# x:378 y:69
 			OperatableStateMachine.add('is_insole_android_device_on',
 										HostAliveState(hostname="192.168.1.101", waittime=1000),
 										transitions={'continue': 'continue', 'failed': 'turn_on_insole_android_device'},
@@ -229,7 +234,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 
 			# x:642 y:639
 			OperatableStateMachine.add('Set_Trial_Filenames_and_Path',
-										MultiSetNameAndPathState(multi_service_list=node_start_list, prefix="", suffix="set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
+										MultiSetNameAndPathState(multi_service_list=node_start_list, prefix="", suffix="/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
 										transitions={'done': 'Start_Recording_Question_Mark', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
@@ -262,7 +267,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 			# x:682 y:290
 			OperatableStateMachine.add('don_imus',
 										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
-										transitions={'done': 'start_ik'},
+										transitions={'done': 'start_parked_nodes'},
 										autonomy={'done': Autonomy.Full})
 
 			# x:429 y:104
@@ -285,9 +290,9 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 										remapping={'input_value': 'load_nodes'})
 
 			# x:651 y:371
-			OperatableStateMachine.add('start_ik',
+			OperatableStateMachine.add('start_parked_nodes',
 										MultiServiceCallState(multi_service_list=node_start_list, predicate="/start_now", prefix=""),
-										transitions={'done': 'wait_for_ik_to_be_ready', 'failed': 'failed'},
+										transitions={'done': 'wait_for_nodes_to_be_ready', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:643 y:203
@@ -297,7 +302,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 										autonomy={'done': Autonomy.Full})
 
 			# x:657 y:455
-			OperatableStateMachine.add('wait_for_ik_to_be_ready',
+			OperatableStateMachine.add('wait_for_nodes_to_be_ready',
 										WaitState(wait_time=5),
 										transitions={'done': 'External_Calibration_and_Heading'},
 										autonomy={'done': Autonomy.Full})
