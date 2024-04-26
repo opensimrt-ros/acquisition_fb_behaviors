@@ -73,7 +73,7 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 		imu_list = ["torso","pelvis","femur_r","tibia_r","talus_r","femur_l","tibia_l","talus_l"]
 		node_start_list = ["/ik_lowerbody_node","/moticon_insoles","/id_node"]
 		tmux_yaml_file3 = "acquisition_imus_insoles.yaml"
-		# x:1022 y:731, x:648 y:259
+		# x:979 y:893, x:350 y:309
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
 		_state_machine.userdata.activity_save_dir = ""
@@ -178,124 +178,141 @@ class acquire_insoles_ID_tmuxSM(Behavior):
 										autonomy={'done': Autonomy.Full})
 
 
+		# x:30 y:472, x:130 y:472
+		_sm_check_if_devices_are_on_3 = OperatableStateMachine(outcomes=['continue', 'done'])
+
+		with _sm_check_if_devices_are_on_3:
+			# x:30 y:42
+			OperatableStateMachine.add('is_router_on',
+										HostAliveState(hostname="192.168.1.1", waittime=200),
+										transitions={'continue': 'is_insole_android_device_on', 'failed': 'turn_on_router'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:211 y:130
+			OperatableStateMachine.add('turn_on_insole_android_device',
+										LogState(text="turn on insole android device and make sure it is connected to the router network!", severity=Logger.REPORT_ERROR),
+										transitions={'done': 'done'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:65 y:132
+			OperatableStateMachine.add('turn_on_router',
+										LogState(text="turn on router!!", severity=Logger.REPORT_ERROR),
+										transitions={'done': 'done'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:221 y:40
+			OperatableStateMachine.add('is_insole_android_device_on',
+										HostAliveState(hostname="192.168.1.101", waittime=1000),
+										transitions={'continue': 'continue', 'failed': 'turn_on_insole_android_device'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+
 
 		with _state_machine:
-			# x:58 y:85
-			OperatableStateMachine.add('run_nodes',
-										CheckConditionState(predicate=lambda x: bool(x)),
-										transitions={'true': 'load_nodes', 'false': 'is_router_on'},
-										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
-										remapping={'input_value': 'load_nodes'})
+			# x:64 y:28
+			OperatableStateMachine.add('Model_Scaling_Not_Implemented',
+										LogState(text="Model scaling is not implemented. We want to scale the osim, urdf model and generate the moment arm library in this step. ", severity=Logger.REPORT_WARN),
+										transitions={'done': 'run_nodes'},
+										autonomy={'done': Autonomy.Off})
 
-			# x:1304 y:351
+			# x:621 y:543
 			OperatableStateMachine.add('External_Calibration_and_Heading',
 										_sm_external_calibration_and_heading_2,
-										transitions={'failed': 'failed', 'done': 'multiple_setpath'},
+										transitions={'failed': 'failed', 'done': 'Set_Trial_Filenames_and_Path'},
 										autonomy={'failed': Autonomy.Inherit, 'done': Autonomy.Inherit})
 
-			# x:1237 y:605
+			# x:666 y:798
 			OperatableStateMachine.add('Recording_trial',
 										_sm_recording_trial_1,
 										transitions={'failed': 'failed', 'done': 'record_another'},
 										autonomy={'failed': Autonomy.Inherit, 'done': Autonomy.Inherit})
 
-			# x:846 y:55
+			# x:642 y:639
+			OperatableStateMachine.add('Set_Trial_Filenames_and_Path',
+										MultiSetNameAndPathState(multi_service_list=node_start_list, prefix="", suffix="set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
+										transitions={'done': 'Start_Recording_Question_Mark', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
+
+			# x:642 y:720
+			OperatableStateMachine.add('Start_Recording_Question_Mark',
+										LogState(text="Is the calibration and the heading OK?\n Proceeding will start recording the trial", severity=Logger.REPORT_HINT),
+										transitions={'done': 'Recording_trial'},
+										autonomy={'done': Autonomy.Full})
+
+			# x:656 y:122
 			OperatableStateMachine.add('Turn_On_IMUs',
 										_sm_turn_on_imus_0,
 										transitions={'done': 'turn_on_insole_acquisition', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:900 y:391
+			# x:929 y:671
 			OperatableStateMachine.add('addone_to_num_reps',
 										CalculationState(calculation=lambda x: x+1),
 										transitions={'done': 'calibrate_ik'},
 										autonomy={'done': Autonomy.Off},
 										remapping={'input_value': 'activity_counter', 'output_value': 'activity_counter'})
 
-			# x:1007 y:205
+			# x:918 y:551
 			OperatableStateMachine.add('calibrate_ik',
 										MultiServiceCallState(multi_service_list="/ik_lowerbody_node", predicate="/calibrate", prefix=""),
 										transitions={'done': 'External_Calibration_and_Heading', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:1397 y:52
+			# x:682 y:290
 			OperatableStateMachine.add('don_imus',
 										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
 										transitions={'done': 'start_ik'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:427 y:23
-			OperatableStateMachine.add('is_insole_android_device_on',
-										HostAliveState(hostname="192.168.1.101", waittime=1000),
-										transitions={'continue': 'wear_insole', 'failed': 'turn_on_insole_android_device'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:239 y:35
-			OperatableStateMachine.add('is_router_on',
-										HostAliveState(hostname="192.168.1.1", waittime=200),
-										transitions={'continue': 'is_insole_android_device_on', 'failed': 'turn_on_router'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:42 y:306
+			# x:429 y:104
 			OperatableStateMachine.add('load_nodes',
 										TmuxSetupFromYamlState(session_name="testtt", startup_yaml=tmux_yaml_path+tmux_yaml_file3),
-										transitions={'continue': 'is_router_on', 'failed': 'failed'},
+										transitions={'continue': 'Check_If_Devices_Are_On', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:1377 y:447
-			OperatableStateMachine.add('multiple_setpath',
-										MultiSetNameAndPathState(multi_service_list=node_start_list, prefix="", suffix="set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
-										transitions={'done': 'Calibration_OK', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
-
-			# x:1000 y:538
+			# x:928 y:801
 			OperatableStateMachine.add('record_another',
 										OperatorDecisionState(outcomes=["yes", "no"], hint=None, suggestion=None),
 										transitions={'yes': 'addone_to_num_reps', 'no': 'finished'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
 
-			# x:1376 y:180
+			# x:90 y:114
+			OperatableStateMachine.add('run_nodes',
+										CheckConditionState(predicate=lambda x: bool(x)),
+										transitions={'true': 'load_nodes', 'false': 'Check_If_Devices_Are_On'},
+										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
+										remapping={'input_value': 'load_nodes'})
+
+			# x:651 y:371
 			OperatableStateMachine.add('start_ik',
 										MultiServiceCallState(multi_service_list=node_start_list, predicate="/start_now", prefix=""),
 										transitions={'done': 'wait_for_ik_to_be_ready', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:1077 y:30
+			# x:643 y:203
 			OperatableStateMachine.add('turn_on_insole_acquisition',
 										LogState(text="Start acquiring insoles", severity=Logger.REPORT_HINT),
 										transitions={'done': 'don_imus'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:421 y:140
-			OperatableStateMachine.add('turn_on_insole_android_device',
-										LogState(text="turn on insole android device and make sure it is connected to the router network!", severity=Logger.REPORT_ERROR),
-										transitions={'done': 'failed'},
-										autonomy={'done': Autonomy.Off})
-
-			# x:273 y:214
-			OperatableStateMachine.add('turn_on_router',
-										LogState(text="turn on router!!", severity=Logger.REPORT_ERROR),
-										transitions={'done': 'failed'},
-										autonomy={'done': Autonomy.Off})
-
-			# x:1367 y:267
+			# x:657 y:455
 			OperatableStateMachine.add('wait_for_ik_to_be_ready',
 										WaitState(wait_time=5),
 										transitions={'done': 'External_Calibration_and_Heading'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:658 y:43
+			# x:679 y:28
 			OperatableStateMachine.add('wear_insole',
 										LogState(text="Please put on insoles", severity=Logger.REPORT_HINT),
 										transitions={'done': 'Turn_On_IMUs'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:1376 y:538
-			OperatableStateMachine.add('Calibration_OK',
-										LogState(text="Is the calibration and the heading OK?", severity=Logger.REPORT_HINT),
-										transitions={'done': 'Recording_trial'},
-										autonomy={'done': Autonomy.Full})
+			# x:425 y:23
+			OperatableStateMachine.add('Check_If_Devices_Are_On',
+										_sm_check_if_devices_are_on_3,
+										transitions={'continue': 'wear_insole', 'done': 'failed'},
+										autonomy={'continue': Autonomy.Inherit, 'done': Autonomy.Inherit})
 
 
 		return _state_machine
