@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
 #              **************************                 #
@@ -6,7 +7,7 @@
 # Only code inside the [MANUAL] tags will be kept.        #
 ###########################################################
 
-from flexbe_core import Behavior, Autonomy, OperatableStateMachine, Logger
+from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from flexbe_states.log_state import LogState
 from flexbe_states.wait_state import WaitState
 # Additional imports can be added inside the following tags
@@ -62,11 +63,23 @@ class ExampleBehaviorSM(Behavior):
 			OperatableStateMachine.add('Print_Message',
 										LogState(text=log_msg, severity=Logger.REPORT_HINT),
 										transitions={'done': 'Wait_After_Logging'},
-										autonomy={'done': Autonomy.Low})
+										autonomy={'done': Autonomy.Full})
+
+			# x:231 y:326
+			OperatableStateMachine.add('Print_Something_Else',
+										LogState(text="Something else", severity=Logger.REPORT_HINT),
+										transitions={'done': 'wait_some_more'},
+										autonomy={'done': Autonomy.Off})
 
 			# x:40 y:228
 			OperatableStateMachine.add('Wait_After_Logging',
 										WaitState(wait_time=self.waiting_time),
+										transitions={'done': 'Print_Something_Else'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:394 y:378
+			OperatableStateMachine.add('wait_some_more',
+										WaitState(wait_time=5),
 										transitions={'done': 'finished'},
 										autonomy={'done': Autonomy.Off})
 

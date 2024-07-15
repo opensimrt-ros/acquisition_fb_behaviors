@@ -236,7 +236,7 @@ class acquire_tmuxSM(Behavior):
 
 			# x:1327 y:311
 			OperatableStateMachine.add('multiple_setpath',
-										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
+										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path", prefix="", suffix="", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
 										transitions={'done': 'Calibration_OK', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})

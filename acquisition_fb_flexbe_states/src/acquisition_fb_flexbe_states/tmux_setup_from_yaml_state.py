@@ -25,6 +25,7 @@ class TmuxSetupFromYamlState(EventState):
         # Store state parameter for later use.
         self._session_name = session_name
         self._errors= []
+        Logger.loghint(f"im trying to read this file: {startup_yaml}")
         with open(startup_yaml) as stream:
             try:
                 self._startup_dic = (yaml.safe_load(stream))
@@ -35,6 +36,8 @@ class TmuxSetupFromYamlState(EventState):
         self._startup_file = startup_yaml
         self._tmux_manager = TmuxManager(self._session_name)
         ## TODO: this only works if you have a single session
+        if not self._tmux_manager.srv.sessions:
+            raise(RuntimeError(f"{__file__}: I need a previously setup tmux session already running to connect to!\n If you keep running it like this you won't be able to see any of the logs, which is the whole point of this thing."))
         self._tmux_manager.session = self._tmux_manager.srv.sessions.get()
     def execute(self, userdata):
         if self._errors:
