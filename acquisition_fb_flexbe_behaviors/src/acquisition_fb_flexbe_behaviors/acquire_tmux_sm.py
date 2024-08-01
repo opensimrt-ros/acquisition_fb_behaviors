@@ -249,7 +249,7 @@ class acquire_tmuxSM(Behavior):
 
 			# x:1126 y:47
 			OperatableStateMachine.add('start_ik',
-										MultiServiceCallState(multi_service_list="/ik_lowerbody_node", predicate="/start_now", prefix=""),
+										MultiServiceCallState(multi_service_list="/ik", predicate="/start_now", prefix=""),
 										transitions={'done': 'wait_for_ik_to_be_ready', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 

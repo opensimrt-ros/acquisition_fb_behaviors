@@ -83,7 +83,7 @@ class acquire_rawSM(Behavior):
 
 			# x:1070 y:115
 			OperatableStateMachine.add('check_heading',
-										MultiServiceCallState(multi_service_list="/ik/pelvis/wtfh/calibrate_heading"),
+										MultiServiceCallState(multi_service_list="/ik/pelvis/wtfh/calibrate_heading", predicate="", prefix=""),
 										transitions={'done': 'start_ik', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Full, 'failed': Autonomy.Off})
 
@@ -101,13 +101,13 @@ class acquire_rawSM(Behavior):
 
 			# x:981 y:23
 			OperatableStateMachine.add('external_pose_calib',
-										MultiServiceCallState(multi_service_list=["/ik/pelvis/pose_average/calibrate_pose"]),
+										MultiServiceCallState(multi_service_list=["/ik/pelvis/pose_average/calibrate_pose"], predicate="", prefix=""),
 										transitions={'done': 'check_heading', 'failed': 'external_pose_calib'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:784 y:268
 			OperatableStateMachine.add('multiple_setpath',
-										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
+										MultiSetNameAndPathState(multi_service_list="/ik_lowerbody_node/set_name_and_path", prefix="", suffix="", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
 										transitions={'done': 'start_recording', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Full, 'failed': Autonomy.Off},
 										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
@@ -120,13 +120,13 @@ class acquire_rawSM(Behavior):
 
 			# x:1043 y:215
 			OperatableStateMachine.add('start_ik',
-										MultiServiceCallState(multi_service_list="/ik_lowerbody_node/start_now"),
+										MultiServiceCallState(multi_service_list="/ik_lowerbody_node/start_now", predicate="", prefix=""),
 										transitions={'done': 'multiple_setpath', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:315 y:130
 			OperatableStateMachine.add('start_imus',
-										MultiServiceCallState(multi_service_list=["/ximu_torso/start_now",                 "/ximu_pelvis/start_now",                 "/ximu_femur_l/start_now",                 "/ximu_femur_r/start_now",                 "/ximu_tibia_l/start_now",                 "/ximu_tibia_r/start_now",                 "/ximu_talus_l/start_now",                 "/ximu_talus_r/start_now",]),
+										MultiServiceCallState(multi_service_list=["/ximu_torso/start_now",                 "/ximu_pelvis/start_now",                 "/ximu_femur_l/start_now",                 "/ximu_femur_r/start_now",                 "/ximu_tibia_l/start_now",                 "/ximu_tibia_r/start_now",                 "/ximu_talus_l/start_now",                 "/ximu_talus_r/start_now",], predicate="", prefix=""),
 										transitions={'done': 'wait_for_things_to_be_done', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
