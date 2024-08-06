@@ -226,7 +226,7 @@ class acquire_old_heading_tmuxSM(Behavior):
 
 			# x:647 y:538
 			OperatableStateMachine.add('calibrate_ik',
-										MultiServiceCallState(multi_service_list="/ik_lowerbody_node", predicate="/calibrate", prefix=""),
+										MultiServiceCallState(multi_service_list="/ik", predicate="/calibrate", prefix=""),
 										transitions={'done': 'Set_Trial_Filenames_and_Path', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
