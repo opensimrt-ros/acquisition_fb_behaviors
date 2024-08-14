@@ -28,15 +28,16 @@ from flexbe_states.wait_state import WaitState
 Created on Mon Apr 22 2024
 @author: frekle
 '''
-class acquire_old_heading_play_sound_tmuxSM(Behavior):
+class acquire_old_heading_play_sound_insoles_tmuxSM(Behavior):
 	'''
-	acquire with tmux and old heading but now playing sounds too
+	acquire with tmux and old heading but now playing sounds and with insoles and ID
+
 	'''
 
 
 	def __init__(self):
-		super(acquire_old_heading_play_sound_tmuxSM, self).__init__()
-		self.name = 'acquire_old_heading_play_sound_tmux'
+		super(acquire_old_heading_play_sound_insoles_tmuxSM, self).__init__()
+		self.name = 'acquire_old_heading_play_sound_insoles_tmux'
 
 		# parameters of this behavior
 		self.add_parameter('activity_name', 'walking')
@@ -135,13 +136,13 @@ class acquire_old_heading_play_sound_tmuxSM(Behavior):
 		with _sm_recording_trial_1:
 			# x:488 y:12
 			OperatableStateMachine.add('start_recording_srv',
-										MultiServiceCallState(multi_service_list=node_start_list, predicate="/start_recording", prefix=""),
+										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/start_recording", prefix=""),
 										transitions={'done': 'start_recording', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:486 y:454
 			OperatableStateMachine.add('clear_loggers',
-										MultiServiceCallState(multi_service_list=node_start_list, predicate="/clear_loggers", prefix=""),
+										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/clear_loggers", prefix=""),
 										transitions={'done': 'done', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -153,13 +154,13 @@ class acquire_old_heading_play_sound_tmuxSM(Behavior):
 
 			# x:493 y:261
 			OperatableStateMachine.add('stop_recording_srv',
-										MultiServiceCallState(multi_service_list=node_start_list, predicate="/stop_recording", prefix=""),
+										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/stop_recording", prefix=""),
 										transitions={'done': 'write_sto_srv', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:486 y:367
 			OperatableStateMachine.add('write_sto_srv',
-										MultiServiceCallState(multi_service_list=node_start_list, predicate="/write_sto", prefix=""),
+										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/write_sto", prefix=""),
 										transitions={'done': 'clear_loggers', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -209,7 +210,7 @@ class acquire_old_heading_play_sound_tmuxSM(Behavior):
 
 			# x:642 y:639
 			OperatableStateMachine.add('Set_Trial_Filenames_and_Path',
-										MultiSetNameAndPathState(multi_service_list=node_start_list, prefix="", suffix="/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
+										MultiSetNameAndPathState(multi_service_list=node_start_list2, prefix="", suffix="/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
 										transitions={'done': 'Start_Recording_Question_Mark', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
@@ -266,7 +267,7 @@ class acquire_old_heading_play_sound_tmuxSM(Behavior):
 
 			# x:647 y:306
 			OperatableStateMachine.add('start_parked_nodes',
-										MultiServiceCallState(multi_service_list=node_start_list, predicate="/start_now", prefix=""),
+										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/start_now", prefix=""),
 										transitions={'done': 'wait_for_nodes_to_be_ready', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
