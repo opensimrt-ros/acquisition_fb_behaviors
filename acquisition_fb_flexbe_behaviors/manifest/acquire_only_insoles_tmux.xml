@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="acquire_old_heading_play_sound_insoles_tmux">
+<behavior name="acquire_only_insoles_tmux">
 
-	<executable package_path="acquisition_fb_flexbe_behaviors.acquire_old_heading_play_sound_insoles_tmux_sm" class="acquire_old_heading_play_sound_insoles_tmuxSM" />
-	<tagstring>acquisition, tmux, sound, old_heading, insoles</tagstring>
+	<executable package_path="acquisition_fb_flexbe_behaviors.acquire_only_insoles_tmux_sm" class="acquire_only_insoles_tmuxSM" />
+	<tagstring>acquisition, tmux, insoles</tagstring>
 	<author>frekle</author>
-	<date>Mon Apr 22 2024</date>
+	<date>Mon Aug 15 2024</date>
 	<description>
-		acquire with tmux and old heading but now playing sounds and with insoles and ID
+		acquire with tmux and insoles only
 	</description>
 
 
