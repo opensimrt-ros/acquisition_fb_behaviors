@@ -84,7 +84,8 @@ class acquire_old_heading_tmuxSM(Behavior):
 		imu_list = ["torso","pelvis","femur_r","tibia_r","talus_r","femur_l","tibia_l","talus_l"]
 		node_start_list = ["/ik"]
 		tmux_yaml_file3 = "acquisition_imus_insoles.yaml"
-		tmux_yaml_file4 = "acquisition_imus_old_heading.yaml"
+		tmux_yaml_file4 = "acquisition_imus_upright.yaml"
+		tmux_yaml_file5 = "acquisition_imus_old_heading.yaml"
 		# x:1421 y:812, x:162 y:458
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
