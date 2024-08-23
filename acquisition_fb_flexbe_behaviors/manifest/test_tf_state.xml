@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="test_tf_state">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.test_tf_state_sm" class="test_tf_stateSM" />
+	<tagstring>.</tagstring>
+	<author>frekle</author>
+	<date>Fri Aug 23 2024</date>
+	<description>
+		.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
