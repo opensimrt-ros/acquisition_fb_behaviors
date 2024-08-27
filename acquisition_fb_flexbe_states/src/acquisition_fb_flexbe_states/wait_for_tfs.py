@@ -15,18 +15,28 @@ class WaitForTfsState(EventState):
 
     '''
 
-    def __init__(self, tf_list, reference_frame = "map"):
+    def __init__(self,tf_prefix, tf_list, reference_frame = "map"):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(WaitForTfsState, self).__init__(outcomes = ['continue', 'failed'])
 
         # Store state parameter for later use.
+        self._tf_prefix = tf_prefix
+
         if type(tf_list) == type(""):
             tf_list = [tf_list]
-        self._tf_list = tf_list
+        
+        _tf_list = []
+        for a_tf in tf_list:
+            ## adds the prefix to the thing
+            _tf_list.append(self._tf_prefix + "/" + a_tf)
+
+
+        self._tf_list = _tf_list
 
         self._tfl = tf.TransformListener()
 
         self._reference_frame = reference_frame
+
 
     def execute(self, userdata):
         # This method is called periodically while the state is active.

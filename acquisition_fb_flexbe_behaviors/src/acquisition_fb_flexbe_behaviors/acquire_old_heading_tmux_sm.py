@@ -12,6 +12,7 @@ from acquisition_fb_flexbe_states.check_if_alive import HostAliveState
 from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCallState
 from acquisition_fb_flexbe_states.set_name_and_path_state import MultiSetNameAndPathState
 from acquisition_fb_flexbe_states.tmux_setup_from_yaml_state import TmuxSetupFromYamlState
+from acquisition_fb_flexbe_states.wait_for_tfs import WaitForTfsState
 from flexbe_states.calculation_state import CalculationState
 from flexbe_states.check_condition_state import CheckConditionState
 from flexbe_states.log_state import LogState
@@ -117,14 +118,14 @@ class acquire_old_heading_tmuxSM(Behavior):
 			# x:207 y:40
 			OperatableStateMachine.add('wait_for_things_to_be_done',
 										WaitState(wait_time=5),
-										transitions={'done': 'check_if_imus_on'},
+										transitions={'done': 'check_all_imu_tfs'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:396 y:102
-			OperatableStateMachine.add('check_if_imus_on',
-										LogState(text="Dummy state: check if IMUs are blinking then you can start moving them around. BTW, this should be a wait for transform or somethign.", severity=Logger.REPORT_HINT),
-										transitions={'done': 'done'},
-										autonomy={'done': Autonomy.Full})
+			# x:514 y:213
+			OperatableStateMachine.add('check_all_imu_tfs',
+										WaitForTfsState(tf_prefix="imu", tf_list=imu_list, reference_frame="map"),
+										transitions={'continue': 'done', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 
 		# x:71 y:247, x:559 y:584
@@ -212,7 +213,7 @@ class acquire_old_heading_tmuxSM(Behavior):
 										transitions={'done': 'Recording_trial'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:660 y:175
+			# x:660 y:176
 			OperatableStateMachine.add('Turn_On_IMUs',
 										_sm_turn_on_imus_0,
 										transitions={'done': 'don_imus', 'failed': 'failed'},
