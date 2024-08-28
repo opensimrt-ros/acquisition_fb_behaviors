@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="compare_insoles">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.compare_insoles_sm" class="compare_insolesSM" />
+	<tagstring>acquisition, tmux, insoles, talus</tagstring>
+	<author>frekle</author>
+	<date>Mon Apr 22 2024</date>
+	<description>
+		this will start the insoles and the talus imus so we can match their times
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="boolean" name="run_nodes" default="True" label="run_nodes" hint="Sets the run_nodes" />
+
+	</params>
+
+
+</behavior>
