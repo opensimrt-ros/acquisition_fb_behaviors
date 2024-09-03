@@ -38,7 +38,14 @@ class TmuxSetupFromYamlState(EventState):
         ## TODO: this only works if you have a single session
         if not self._tmux_manager.srv.sessions:
             raise(RuntimeError(f"{__file__}: I need a previously setup tmux session already running to connect to!\n If you keep running it like this you won't be able to see any of the logs, which is the whole point of this thing."))
-        self._tmux_manager.session = self._tmux_manager.srv.sessions.get()
+        found = False
+        for ss in self._tmux_manager.srv.sessions:
+            if ss.name == self._session_name:
+                self._tmux_manager.session = ss
+                found = True
+                break
+        if not found:
+            raise(RuntimeError(f"could not find session '{session_name}'"))
     def execute(self, userdata):
         if self._errors:
             return 'failed'
