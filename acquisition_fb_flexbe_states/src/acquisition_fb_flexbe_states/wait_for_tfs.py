@@ -33,7 +33,7 @@ class WaitForTfsState(EventState):
 
         self._tf_list = _tf_list
 
-        self._tfl = tf.TransformListener()
+        self._tfl = tf.TransformListener
 
         self._reference_frame = reference_frame
 
@@ -48,7 +48,10 @@ class WaitForTfsState(EventState):
         try:
             for a_frame in self._tf_list:
                 Logger.loghint(f"looking for transform from {self._reference_frame} to {a_frame}")
-                if self._tfl.canTransform(self._reference_frame, a_frame,rospy.Time.now()):
+
+                #response = self._tfl.canTransform(self._reference_frame, a_frame, rospy.Duration(0.5))
+                response = self._tfl.waitForTransform(self._reference_frame, a_frame, rospy.Time.now(),rospy.Duration(0.5))
+                if response:
                     self._tf_list.remove(a_frame)
                     break
 

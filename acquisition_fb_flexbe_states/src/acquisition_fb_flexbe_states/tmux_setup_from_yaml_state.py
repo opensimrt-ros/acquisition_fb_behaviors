@@ -78,5 +78,5 @@ class TmuxSetupFromYamlState(EventState):
         # This method is called whenever the behavior stops execution, also if it is cancelled.
         # Use this event to clean up things like claimed resources.
 
-        pass # Nothing to do in this example.
+        self._tmux_manager.close_own_windows()
 

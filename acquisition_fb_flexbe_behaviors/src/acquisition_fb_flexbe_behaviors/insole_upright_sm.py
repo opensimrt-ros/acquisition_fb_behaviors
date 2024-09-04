@@ -13,7 +13,7 @@ from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCa
 from acquisition_fb_flexbe_states.play_sound_state import PlaySoundState
 from acquisition_fb_flexbe_states.set_name_and_path_state import MultiSetNameAndPathState
 from acquisition_fb_flexbe_states.tmux_setup_from_yaml_state import TmuxSetupFromYamlState
-from acquisition_fb_flexbe_states.wait_for_tfs import WaitForTfsState
+from acquisition_fb_flexbe_states.wait_for_diags import WaitForDiags
 from flexbe_states.calculation_state import CalculationState
 from flexbe_states.check_condition_state import CheckConditionState
 from flexbe_states.log_state import LogState
@@ -71,7 +71,7 @@ staring upright
 		# O 335 93 /Check_If_Devices_Are_On
 		# TODO: This should be a part of the device monitoring bit, so don't have to run this as a state and also since they may fail at any point
 
-		# ! 293 8 
+		# ! 297 4 
 		# TODO:Here we also need to make sure we are loading the correct models every time!
 
 		# O 519 273 /Calibration_and_Heading
@@ -91,7 +91,7 @@ staring upright
 		node_start_list2 = ["/ik","/moticon_insoles","/id_node"]
 		tmux_yaml_file5 = "insole_upright.yaml"
 		end_sound_file = "/srv/host_data/end.wav"
-		# x:1421 y:812, x:162 y:458
+		# x:1424 y:592, x:97 y:286
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
 		_state_machine.userdata.activity_save_dir = ""
@@ -103,10 +103,27 @@ staring upright
 		
 		# [/MANUAL_CREATE]
 
-		# x:949 y:156, x:130 y:477
-		_sm_turn_on_imus_0 = OperatableStateMachine(outcomes=['done', 'failed'])
+		# x:30 y:477, x:130 y:477
+		_sm_turn_on_insoles_0 = OperatableStateMachine(outcomes=['continue', 'failed'])
 
-		with _sm_turn_on_imus_0:
+		with _sm_turn_on_insoles_0:
+			# x:273 y:40
+			OperatableStateMachine.add('wear_and_turn_on_insoles',
+										LogState(text="Shake insoles to wake them up, place inside shoes and turn on real-time acquisition on moticon app", severity=Logger.REPORT_HINT),
+										transitions={'done': 'insoles'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:30 y:76
+			OperatableStateMachine.add('insoles',
+										WaitForDiags(diags_list=["left","right"]),
+										transitions={'continue': 'continue', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+
+		# x:949 y:156, x:130 y:477
+		_sm_turn_on_imus_1 = OperatableStateMachine(outcomes=['done', 'failed'])
+
+		with _sm_turn_on_imus_1:
 			# x:30 y:47
 			OperatableStateMachine.add('turn_on_imus',
 										LogState(text="Turn on imus in a line", severity=Logger.REPORT_HINT),
@@ -122,20 +139,20 @@ staring upright
 			# x:207 y:40
 			OperatableStateMachine.add('wait_for_things_to_be_done',
 										WaitState(wait_time=5),
-										transitions={'done': 'check_tfs_published'},
+										transitions={'done': 'imu_diags'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:515 y:111
-			OperatableStateMachine.add('check_tfs_published',
-										WaitForTfsState(tf_prefix="imu", tf_list=imu_list, reference_frame="map"),
+			# x:466 y:81
+			OperatableStateMachine.add('imu_diags',
+										WaitForDiags(diags_list=imu_list),
 										transitions={'continue': 'done', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 
-		# x:71 y:247, x:559 y:584
-		_sm_recording_trial_1 = OperatableStateMachine(outcomes=['failed', 'done'])
+		# x:30 y:477, x:130 y:477
+		_sm_recording_trial_2 = OperatableStateMachine(outcomes=['failed', 'done'])
 
-		with _sm_recording_trial_1:
+		with _sm_recording_trial_2:
 			# x:488 y:12
 			OperatableStateMachine.add('start_recording_srv',
 										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/start_recording", prefix=""),
@@ -174,9 +191,9 @@ staring upright
 
 
 		# x:264 y:58, x:130 y:432
-		_sm_check_if_devices_are_on_2 = OperatableStateMachine(outcomes=['done', 'fail'])
+		_sm_check_if_devices_are_on_3 = OperatableStateMachine(outcomes=['done', 'fail'])
 
-		with _sm_check_if_devices_are_on_2:
+		with _sm_check_if_devices_are_on_3:
 			# x:30 y:42
 			OperatableStateMachine.add('is_router_on',
 										HostAliveState(hostname="192.168.1.1", waittime=200),
@@ -200,42 +217,48 @@ staring upright
 
 			# x:636 y:17
 			OperatableStateMachine.add('Check_If_Devices_Are_On',
-										_sm_check_if_devices_are_on_2,
-										transitions={'done': 'wear_and_turn_on_insoles', 'fail': 'failed'},
+										_sm_check_if_devices_are_on_3,
+										transitions={'done': 'Turn_On_Insoles', 'fail': 'failed'},
 										autonomy={'done': Autonomy.Inherit, 'fail': Autonomy.Inherit})
 
-			# x:653 y:775
+			# x:621 y:562
 			OperatableStateMachine.add('EndSound',
 										PlaySoundState(sound_file=end_sound_file),
 										transitions={'continue': 'record_another', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:673 y:657
+			# x:658 y:462
 			OperatableStateMachine.add('Recording_trial',
-										_sm_recording_trial_1,
+										_sm_recording_trial_2,
 										transitions={'failed': 'failed', 'done': 'EndSound'},
 										autonomy={'failed': Autonomy.Inherit, 'done': Autonomy.Inherit})
 
-			# x:643 y:466
+			# x:878 y:415
 			OperatableStateMachine.add('Set_Trial_Filenames_and_Path',
 										MultiSetNameAndPathState(multi_service_list=node_start_list2, prefix="", suffix="/set_name_and_path", activity_name=self.activity_name, save_dir=save_dir, subject_num=self.subject_num),
 										transitions={'done': 'Start_Recording_Question_Mark', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'activity_counter': 'activity_counter', 'activity_save_dir': 'activity_save_dir', 'activity_save_name': 'activity_save_name'})
 
-			# x:643 y:564
+			# x:901 y:510
 			OperatableStateMachine.add('Start_Recording_Question_Mark',
 										LogState(text="Is the calibration and the heading OK?\n Proceeding will start recording the trial", severity=Logger.REPORT_HINT),
 										transitions={'done': 'Recording_trial'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:666 y:110
+			# x:1224 y:73
 			OperatableStateMachine.add('Turn_On_IMUs',
-										_sm_turn_on_imus_0,
+										_sm_turn_on_imus_1,
 										transitions={'done': 'don_imus', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:927 y:464
+			# x:878 y:40
+			OperatableStateMachine.add('Turn_On_Insoles',
+										_sm_turn_on_insoles_0,
+										transitions={'continue': 'Turn_On_IMUs', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:1008 y:335
 			OperatableStateMachine.add('addone_to_num_reps',
 										CalculationState(calculation=lambda x: x+1),
 										transitions={'done': 'CalibSound'},
@@ -248,32 +271,32 @@ staring upright
 										transitions={'done': 'Set_Trial_Filenames_and_Path', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:975 y:169
+			# x:978 y:174
 			OperatableStateMachine.add('don_imus',
 										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
 										transitions={'done': 'start_parked_nodes'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:310 y:143
+			# x:218 y:123
 			OperatableStateMachine.add('load_nodes',
 										TmuxSetupFromYamlState(session_name="testtt", startup_yaml=tmux_yaml_path+tmux_yaml_file5),
 										transitions={'continue': 'Check_If_Devices_Are_On', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:1237 y:666
+			# x:1231 y:580
 			OperatableStateMachine.add('record_another',
 										OperatorDecisionState(outcomes=["yes", "no"], hint=None, suggestion=None),
 										transitions={'yes': 'addone_to_num_reps', 'no': 'finished'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
 
-			# x:66 y:126
+			# x:14 y:109
 			OperatableStateMachine.add('run_nodes',
 										CheckConditionState(predicate=lambda x: bool(x)),
 										transitions={'true': 'load_nodes', 'false': 'Check_If_Devices_Are_On'},
 										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
 										remapping={'input_value': 'load_nodes'})
 
-			# x:655 y:186
+			# x:718 y:201
 			OperatableStateMachine.add('start_parked_nodes',
 										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/start_now", prefix=""),
 										transitions={'done': 'wait_for_nodes_to_be_ready', 'failed': 'failed'},
@@ -283,12 +306,6 @@ staring upright
 			OperatableStateMachine.add('wait_for_nodes_to_be_ready',
 										WaitState(wait_time=5),
 										transitions={'done': 'CalibSound'},
-										autonomy={'done': Autonomy.Full})
-
-			# x:952 y:44
-			OperatableStateMachine.add('wear_and_turn_on_insoles',
-										LogState(text="Shake insoles to wake them up, place inside shoes and turn on real-time acquisition on moticon app", severity=Logger.REPORT_HINT),
-										transitions={'done': 'Turn_On_IMUs'},
 										autonomy={'done': Autonomy.Full})
 
 			# x:655 y:270
