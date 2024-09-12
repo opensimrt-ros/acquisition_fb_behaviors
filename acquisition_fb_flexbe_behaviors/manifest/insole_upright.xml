@@ -20,24 +20,32 @@ staring upright
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="text" name="activity_name" default="walking" label="activity_name" hint="Sets the activity_name" />
+		<param type="text" name="trail_name" default="walking" label="trail_name" hint="Sets the trail_name" />
 
-		<param type="numeric" name="activity_duration" default="10" label="activity_duration" hint="Sets the activity_duration">
+		<param type="text" name="subject_id" default="" label="subject_id" hint="Sets the subject_id" />
+
+		<param type="text" name="trial_save_path" default="" label="trial_save_path" hint="Sets the trial_save_path" />
+
+		<param type="numeric" name="subject_height" default="0" label="subject_height" hint="Sets the subject_height [m]">
 			<min value="0" />
-			<max value="1200" />
+			<max value="3" />
 		</param>
 
-		<param type="numeric" name="subject_num" default="0" label="subject_num" hint="Sets the subject_num">
+		<param type="numeric" name="subject_age" default="0" label="subject_age" hint="Sets the subject_age [years]">
 			<min value="0" />
-			<max value="100" />
+			<max value="150" />
 		</param>
 
-		<param type="numeric" name="num_reps" default="1" label="num_reps" hint="Sets the num_reps">
+		<param type="numeric" name="subject_weight" default="0" label="subject_weight" hint="Sets the subject_weight [kg]">
 			<min value="0" />
-			<max value="100" />
+			<max value="200" />
 		</param>
 
-		<param type="boolean" name="run_nodes" default="True" label="run_nodes" hint="Sets the run_nodes" />
+		<param type="enum" name="subject_shoe_size" default="S6 (42-43)" label="subject_shoe_size" hint="Sets the subject_shoe_size">
+			<option value="S3 (36-37)" />
+			<option value="S4 (38-39)" />
+			<option value="S6 (42-43)" />
+		</param>
 
 	</params>
 

@@ -15,7 +15,6 @@ from acquisition_fb_flexbe_states.set_name_and_path_state import MultiSetNameAnd
 from acquisition_fb_flexbe_states.tmux_setup_from_yaml_state import TmuxSetupFromYamlState
 from acquisition_fb_flexbe_states.wait_for_diags import WaitForDiags
 from flexbe_states.calculation_state import CalculationState
-from flexbe_states.check_condition_state import CheckConditionState
 from flexbe_states.log_state import LogState
 from flexbe_states.operator_decision_state import OperatorDecisionState
 from flexbe_states.wait_state import WaitState
@@ -44,11 +43,13 @@ staring upright
 		self.name = 'insole_upright'
 
 		# parameters of this behavior
-		self.add_parameter('activity_name', 'walking')
-		self.add_parameter('activity_duration', 10)
-		self.add_parameter('subject_num', 0)
-		self.add_parameter('num_reps', 1)
-		self.add_parameter('run_nodes', True)
+		self.add_parameter('trail_name', 'walking')
+		self.add_parameter('subject_id', '')
+		self.add_parameter('trial_save_path', '')
+		self.add_parameter('subject_height', 0)
+		self.add_parameter('subject_age', 0)
+		self.add_parameter('subject_weight', 0)
+		self.add_parameter('subject_shoe_size', 'S6 (42-43)')
 
 		# references to used behaviors
 
@@ -96,7 +97,6 @@ staring upright
 		_state_machine.userdata.activity_counter = 0
 		_state_machine.userdata.activity_save_dir = ""
 		_state_machine.userdata.activity_save_name = ""
-		_state_machine.userdata.load_nodes = self.run_nodes
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -159,17 +159,11 @@ staring upright
 										transitions={'done': 'start_recording', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:486 y:454
-			OperatableStateMachine.add('clear_loggers',
-										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/clear_loggers", prefix=""),
-										transitions={'done': 'done', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
-
 			# x:520 y:87
 			OperatableStateMachine.add('start_recording',
 										LogState(text="Start Recording", severity=Logger.REPORT_HINT),
-										transitions={'done': 'Record_time'},
-										autonomy={'done': Autonomy.Off})
+										transitions={'done': 'stop_recording_srv'},
+										autonomy={'done': Autonomy.Full})
 
 			# x:493 y:261
 			OperatableStateMachine.add('stop_recording_srv',
@@ -183,11 +177,11 @@ staring upright
 										transitions={'done': 'clear_loggers', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:524 y:156
-			OperatableStateMachine.add('Record_time',
-										WaitState(wait_time=self.activity_duration),
-										transitions={'done': 'stop_recording_srv'},
-										autonomy={'done': Autonomy.Off})
+			# x:486 y:454
+			OperatableStateMachine.add('clear_loggers',
+										MultiServiceCallState(multi_service_list=node_start_list2, predicate="/clear_loggers", prefix=""),
+										transitions={'done': 'done', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 
 		# x:264 y:58, x:130 y:432
@@ -212,7 +206,7 @@ staring upright
 			# x:64 y:28
 			OperatableStateMachine.add('Model_Scaling_Not_Implemented',
 										LogState(text="Model scaling is not implemented. We want to scale the osim, urdf model and generate the moment arm library in this step. ", severity=Logger.REPORT_WARN),
-										transitions={'done': 'run_nodes'},
+										transitions={'done': 'load_nodes'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:636 y:17
@@ -277,7 +271,7 @@ staring upright
 										transitions={'done': 'start_parked_nodes'},
 										autonomy={'done': Autonomy.Full})
 
-			# x:218 y:123
+			# x:145 y:127
 			OperatableStateMachine.add('load_nodes',
 										TmuxSetupFromYamlState(session_name="testtt", startup_yaml=tmux_yaml_path+tmux_yaml_file5),
 										transitions={'continue': 'Check_If_Devices_Are_On', 'failed': 'failed'},
@@ -288,13 +282,6 @@ staring upright
 										OperatorDecisionState(outcomes=["yes", "no"], hint=None, suggestion=None),
 										transitions={'yes': 'addone_to_num_reps', 'no': 'finished'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
-
-			# x:14 y:109
-			OperatableStateMachine.add('run_nodes',
-										CheckConditionState(predicate=lambda x: bool(x)),
-										transitions={'true': 'load_nodes', 'false': 'Check_If_Devices_Are_On'},
-										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
-										remapping={'input_value': 'load_nodes'})
 
 			# x:718 y:201
 			OperatableStateMachine.add('start_parked_nodes',
