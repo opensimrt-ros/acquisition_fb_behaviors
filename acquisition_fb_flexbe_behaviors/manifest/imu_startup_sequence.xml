@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="imu_startup_sequence">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.imu_startup_sequence_sm" class="imu_startup_sequenceSM" />
+	<tagstring>imu</tagstring>
+	<author>frekle</author>
+	<date>Mon Apr 22 2024</date>
+	<description>
+		embeddable imu start behavior
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
