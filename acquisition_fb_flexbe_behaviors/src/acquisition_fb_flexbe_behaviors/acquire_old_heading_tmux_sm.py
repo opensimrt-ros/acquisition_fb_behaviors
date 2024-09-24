@@ -107,7 +107,7 @@ class acquire_old_heading_tmuxSM(Behavior):
 			OperatableStateMachine.add('turn_on_imus',
 										LogState(text="Turn on imus in a line", severity=Logger.REPORT_HINT),
 										transitions={'done': 'start_imus'},
-										autonomy={'done': Autonomy.Full})
+										autonomy={'done': Autonomy.Low})
 
 			# x:147 y:159
 			OperatableStateMachine.add('start_imus',
@@ -138,17 +138,17 @@ class acquire_old_heading_tmuxSM(Behavior):
 										transitions={'done': 'start_recording', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:486 y:454
-			OperatableStateMachine.add('clear_loggers',
-										MultiServiceCallState(multi_service_list=node_start_list, predicate="/clear_loggers", prefix=""),
-										transitions={'done': 'done', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
-
 			# x:520 y:87
 			OperatableStateMachine.add('start_recording',
 										LogState(text="Start Recording", severity=Logger.REPORT_HINT),
-										transitions={'done': 'Record_time'},
+										transitions={'done': 'stop_recording_question_mark'},
 										autonomy={'done': Autonomy.Off})
+
+			# x:495 y:170
+			OperatableStateMachine.add('stop_recording_question_mark',
+										LogState(text="Proceeding will stop recording the trial", severity=Logger.REPORT_HINT),
+										transitions={'done': 'stop_recording_srv'},
+										autonomy={'done': Autonomy.Full})
 
 			# x:493 y:261
 			OperatableStateMachine.add('stop_recording_srv',
@@ -162,11 +162,11 @@ class acquire_old_heading_tmuxSM(Behavior):
 										transitions={'done': 'clear_loggers', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:524 y:156
-			OperatableStateMachine.add('Record_time',
-										WaitState(wait_time=self.activity_duration),
-										transitions={'done': 'stop_recording_srv'},
-										autonomy={'done': Autonomy.Off})
+			# x:486 y:454
+			OperatableStateMachine.add('clear_loggers',
+										MultiServiceCallState(multi_service_list=node_start_list, predicate="/clear_loggers", prefix=""),
+										transitions={'done': 'done', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 
 		# x:264 y:58, x:130 y:432
