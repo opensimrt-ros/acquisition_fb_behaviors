@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="acquire_old_heading_play_sound_tmux">
+<behavior name="acquire_imu_and_ik">
 
-	<executable package_path="acquisition_fb_flexbe_behaviors.acquire_old_heading_play_sound_tmux_sm" class="acquire_old_heading_play_sound_tmuxSM" />
-	<tagstring>acquisition, tmux, sound, old_heading</tagstring>
+	<executable package_path="acquisition_fb_flexbe_behaviors.acquire_imu_and_ik_sm" class="acquire_imu_and_ikSM" />
+	<tagstring>acquisition, tmux, sound, old_heading, upright</tagstring>
 	<author>frekle</author>
 	<date>Mon Apr 22 2024</date>
 	<description>
-		acquire with tmux and old heading but now playing sounds too
+		acquire using embeddable IMU behavior
+- with tmux 
+- IMUs with upright start
+- IK using old heading 
+- playing sounds
 	</description>
 
 

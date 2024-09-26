@@ -29,15 +29,19 @@ from flexbe_states.wait_state import WaitState
 Created on Mon Apr 22 2024
 @author: frekle
 '''
-class acquire_old_heading_play_sound_tmuxSM(Behavior):
+class acquire_imu_and_ikSM(Behavior):
 	'''
-	acquire with tmux and old heading but now playing sounds too
+	acquire using embeddable IMU behavior
+- with tmux 
+- IMUs with upright start
+- IK using old heading 
+- playing sounds
 	'''
 
 
 	def __init__(self):
-		super(acquire_old_heading_play_sound_tmuxSM, self).__init__()
-		self.name = 'acquire_old_heading_play_sound_tmux'
+		super(acquire_imu_and_ikSM, self).__init__()
+		self.name = 'acquire_imu_and_ik'
 
 		# parameters of this behavior
 		self.add_parameter('activity_name', 'walking')
@@ -211,7 +215,7 @@ class acquire_old_heading_play_sound_tmuxSM(Behavior):
 
 			# x:310 y:143
 			OperatableStateMachine.add('load_nodes',
-										TmuxSetupFromYamlState(session_name="testtt", startup_yaml=tmux_yaml_path+tmux_yaml_file4),
+										TmuxSetupFromYamlState(session_name="testtt", startup_yaml=tmux_yaml_path+tmux_yaml_file),
 										transitions={'continue': 'Check_If_Devices_Are_On', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
