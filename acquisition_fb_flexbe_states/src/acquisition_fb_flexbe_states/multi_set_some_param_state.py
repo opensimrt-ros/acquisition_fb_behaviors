@@ -19,7 +19,7 @@ class MultiSetSomeParamState(EventState):
 
     '''
 
-    def __init__(self, multi_node_list, param_to_set, value_of_param):
+    def __init__(self, multi_node_list, param_to_set, value_of_param, check_if_nodes_exist=True):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(MultiSetSomeParamState, self).__init__(outcomes = ['done', 'failed'])
         
@@ -28,6 +28,7 @@ class MultiSetSomeParamState(EventState):
         # Store state parameter for later use.
         self._param_to_set = param_to_set
         self._value_of_param = value_of_param
+        self._check_if_nodes_exist_prior_to_setting_them = check_if_nodes_exist
         if type(multi_node_list) == type(""):
             multi_node_list = [multi_node_list]
         self._multi_node_list = multi_node_list
@@ -64,7 +65,7 @@ class MultiSetSomeParamState(EventState):
 
         for a_param in self._param_list:
             try:
-                if rospy.has_param(a_param):
+                if rospy.has_param(a_param) or not self._check_if_nodes_exist_prior_to_setting_them:
                     Logger.loghint(f"setting param {a_param} to {self._value_of_param}")
                     rospy.set_param(a_param, self._value_of_param)
                 else:

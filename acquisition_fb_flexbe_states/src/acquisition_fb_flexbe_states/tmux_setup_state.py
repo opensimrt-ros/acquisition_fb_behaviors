@@ -2,7 +2,7 @@
 import rospy
 
 from flexbe_core import EventState, Logger
-from acquisition_of_raw_data.tmux_session_manager import *
+from tmux_launch.tmux_session_manager import *
 
 class TmuxSetupState(EventState):
     '''

@@ -2,7 +2,7 @@
 
 <behavior name="demo_tmux">
 
-	<executable package_path="acquisition_fb_flexbe_behaviors.demo_tmux_sm" class="demo_tmuxSM" />
+	<executable package_path="test_acquisition_fb_flexbe_behaviors.demo_tmux_sm" class="demo_tmuxSM" />
 	<tagstring>demo</tagstring>
 	<author>me</author>
 	<date>Wed Apr 24 2024</date>

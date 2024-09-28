@@ -16,7 +16,7 @@ class WaitForDiags(EventState):
 
     '''
 
-    def __init__(self, diags_list):
+    def __init__(self, diags_list, timeout=10):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(WaitForDiags, self).__init__(outcomes = ['continue', 'failed'])
 
@@ -26,7 +26,8 @@ class WaitForDiags(EventState):
             diags_list = [diags_list]
         
         self._diags_list = diags_list
-
+        self._initial_time = None
+        self._timeout_time = rospy.Duration(timeout)
 
     def execute(self, userdata):
         # This method is called periodically while the state is active.
@@ -36,13 +37,22 @@ class WaitForDiags(EventState):
             return 'continue'
 
         try:
+            i=0
             while len(self._diags_list) > 0:
                 Logger.loghint("looking for stuff")
-                a_response = rospy.wait_for_message("/diagnostics", DiagnosticArray)
-                if not a_response:
+                if rospy.Time.now() > self._initial_time + self._timeout_time:
+                    Logger.logerr("Timeout exceeded")
+                    return 'failed'
+                try:
+                    a_response = rospy.wait_for_message("/diagnostics", DiagnosticArray, timeout=0.1)
+                except rospy.ROSException as eee:
+                    if i%100 == 1:
+                        Logger.loghint(f"looking for diags from {a_diag} exceeded timeout, i think..")
                     continue
                 for a_diag in self._diags_list:
-                    Logger.loghint(f"looking for diags from {a_diag}")
+                    if i%100 == 1:
+                        i = 0
+                        Logger.loghint(f"looking for diags from {a_diag}")
 
                     #print(a_response.status[0])
                     #print(len(a_response.status))
@@ -69,8 +79,7 @@ class WaitForDiags(EventState):
     def on_enter(self, userdata):
         # This method is called when the state becomes active, i.e. a transition from another state to this one is taken.
         # It is primarily used to start actions which are associated with this state.
-        pass
-
+        self._initial_time = rospy.Time.now()
 
     def on_exit(self, userdata):
         # This method is called when an outcome is returned and another state gets active.

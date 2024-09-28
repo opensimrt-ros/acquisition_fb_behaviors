@@ -2,7 +2,7 @@
 
 <behavior name="test_embedded">
 
-	<executable package_path="acquisition_fb_flexbe_behaviors.test_embedded_sm" class="test_embeddedSM" />
+	<executable package_path="test_acquisition_fb_flexbe_behaviors.test_embedded_sm" class="test_embeddedSM" />
 	<tagstring></tagstring>
 	<author>me</author>
 	<date>Thu Sep 19 2024</date>

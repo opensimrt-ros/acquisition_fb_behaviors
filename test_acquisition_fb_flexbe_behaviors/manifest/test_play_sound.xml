@@ -2,7 +2,7 @@
 
 <behavior name="test_play_sound">
 
-	<executable package_path="acquisition_fb_flexbe_behaviors.test_play_sound_sm" class="test_play_soundSM" />
+	<executable package_path="test_acquisition_fb_flexbe_behaviors.test_play_sound_sm" class="test_play_soundSM" />
 	<tagstring>.</tagstring>
 	<author>.</author>
 	<date>Tue Aug 13 2024</date>

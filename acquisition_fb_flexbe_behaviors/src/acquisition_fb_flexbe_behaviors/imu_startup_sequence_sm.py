@@ -9,7 +9,7 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from acquisition_fb_flexbe_states.multi_service_call_state import MultiServiceCallState
-from acquisition_fb_flexbe_states.tmux_setup_from_yaml_state import TmuxSetupFromYamlState
+from acquisition_fb_flexbe_states.variable_tmux_setup_from_yaml_state import VariableTmuxSetupFromYamlState
 from acquisition_fb_flexbe_states.wait_for_diags import WaitForDiags
 from flexbe_states.log_state import LogState
 from flexbe_states.wait_state import WaitState
@@ -34,6 +34,8 @@ class imu_startup_sequenceSM(Behavior):
 		self.name = 'imu_startup_sequence'
 
 		# parameters of this behavior
+		self.add_parameter('dummy_imus', False)
+		self.add_parameter('wait_to_start', False)
 
 		# references to used behaviors
 
@@ -70,8 +72,10 @@ class imu_startup_sequenceSM(Behavior):
 		tmux_yaml_file = "imus.yaml"
 		use_session = "testtt"
 		# x:961 y:87, x:216 y:388
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], output_keys=['imu_list'])
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['imu_export_vars'], output_keys=['imu_list'])
 		_state_machine.userdata.imu_list = imu_list
+		_state_machine.userdata.disregard = []
+		_state_machine.userdata.imu_export_vars = {"DUMMY_IMUS":self.dummy_imus,"WAIT_TO_START":self.wait_to_start}
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -102,30 +106,31 @@ class imu_startup_sequenceSM(Behavior):
 
 			# x:422 y:187
 			OperatableStateMachine.add('imu_diags',
-										WaitForDiags(diags_list=imu_list),
+										WaitForDiags(diags_list=imu_list, timeout=10),
 										transitions={'continue': 'done', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 
 
 		with _state_machine:
-			# x:143 y:65
-			OperatableStateMachine.add('load_nodes',
-										TmuxSetupFromYamlState(session_name=use_session, startup_yaml=tmux_yaml_path+tmux_yaml_file),
+			# x:133 y:64
+			OperatableStateMachine.add('Load_IMU_Nodes',
+										VariableTmuxSetupFromYamlState(session_name=use_session, startup_yaml=tmux_yaml_path+tmux_yaml_file, append_node=[]),
 										transitions={'continue': 'Turn_On_IMUs', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:723 y:79
-			OperatableStateMachine.add('don_imus',
-										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
-										transitions={'done': 'finished'},
-										autonomy={'done': Autonomy.Full})
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'node_start_list': 'disregard', 'load_env': 'imu_export_vars'})
 
 			# x:454 y:90
 			OperatableStateMachine.add('Turn_On_IMUs',
 										_sm_turn_on_imus_0,
 										transitions={'done': 'don_imus', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:723 y:79
+			OperatableStateMachine.add('don_imus',
+										LogState(text="place IMUs", severity=Logger.REPORT_HINT),
+										transitions={'done': 'finished'},
+										autonomy={'done': Autonomy.Full})
 
 
 		return _state_machine

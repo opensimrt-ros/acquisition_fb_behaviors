@@ -7,7 +7,7 @@ from tmux_launch.tmux_session_manager import *
 import yaml
 import os
 
-class TmuxSetupFromYamlState(EventState):
+class VariableTmuxSetupFromYamlState(EventState):
     '''
         starts tmux
 §
@@ -18,10 +18,10 @@ class TmuxSetupFromYamlState(EventState):
 
     '''
 
-    def __init__(self, session_name, startup_yaml, load_env={},append_node=[]):
+    def __init__(self, session_name, startup_yaml, append_node=[]):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
-        super(TmuxSetupFromYamlState, self).__init__(outcomes = ['continue', 'failed'],
-                input_keys = ["node_start_list"],
+        super(VariableTmuxSetupFromYamlState, self).__init__(outcomes = ['continue', 'failed'],
+                input_keys = ["node_start_list","load_env"],
                 output_keys = ["node_start_list"])
 
 
@@ -32,7 +32,7 @@ class TmuxSetupFromYamlState(EventState):
         self._append_nodes = append_node
         if not os.path.exists(startup_yaml):
             Logger.logerr("file %s does not exist!"%startup_yaml)
-            raise Exception('failed:'+__file__)
+            return 'failed'
 
         with open(startup_yaml) as stream:
             try:
@@ -43,8 +43,17 @@ class TmuxSetupFromYamlState(EventState):
                 #print(exc)
 
         self._startup_file = startup_yaml
-        rospy.loginfo("envs:"+repr(load_env))
-        self._tmux_manager = TmuxManager(self._session_name, load_env=load_env)
+    def execute(self, userdata):
+        userdata.node_start_list.extend(self._append_nodes) 
+        if self._errors:
+            return 'failed'
+        else:
+            return 'continue' # One of the outcomes declared above.
+
+
+    def on_enter(self, userdata):
+        rospy.loginfo("envs:"+repr(userdata.load_env))
+        self._tmux_manager = TmuxManager(self._session_name, load_env=userdata.load_env)
         ## TODO: this only works if you have a single session
         if not self._tmux_manager.srv.sessions:
             raise(RuntimeError(f"{__file__}: I need a previously setup tmux session already running to connect to!\n If you keep running it like this you won't be able to see any of the logs, which is the whole point of this thing."))
@@ -56,15 +65,6 @@ class TmuxSetupFromYamlState(EventState):
                 break
         if not found:
             raise(RuntimeError(f"could not find session '{session_name}'"))
-    def execute(self, userdata):
-        userdata.node_start_list.extend(self._append_nodes) 
-        if self._errors:
-            return 'failed'
-        else:
-            return 'continue' # One of the outcomes declared above.
-
-
-    def on_enter(self, userdata):
         ##manager already exists and also the session, we only attach and create the windows
         create_some_windows(window_dic=self._startup_dic, some_manager= self._tmux_manager)
         ## I should detect failures, shouldnt I?

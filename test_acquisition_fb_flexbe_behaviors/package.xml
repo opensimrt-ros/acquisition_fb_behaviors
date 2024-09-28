@@ -1,9 +1,8 @@
 <package>
-  <name>acquisition_fb_flexbe_states</name>
+  <name>test_acquisition_fb_flexbe_behaviors</name>
   <version>1.0.0</version>
   <description>
-     acquisition_fb_flexbe_states provides a collection of custom states.
-     Feel free to add new states.
+     test_acquisition_fb_flexbe_behaviors references all implemented behaviors.
   </description>
   <maintainer email="todo@todo.com">TODO</maintainer>
   <license>BSD</license>
@@ -11,12 +10,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>rospy</run_depend>
-  <run_depend>tmux_launch</run_depend>
-
-  <run_depend>flexbe_core</run_depend>
 
   <export>
-    <flexbe_states />
+    <flexbe_behaviors />
   </export>
 
 </package>

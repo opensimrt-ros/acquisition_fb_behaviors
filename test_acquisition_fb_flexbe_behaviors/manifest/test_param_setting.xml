@@ -2,7 +2,7 @@
 
 <behavior name="test_param_setting">
 
-	<executable package_path="acquisition_fb_flexbe_behaviors.test_param_setting_sm" class="test_param_settingSM" />
+	<executable package_path="test_acquisition_fb_flexbe_behaviors.test_param_setting_sm" class="test_param_settingSM" />
 	<tagstring></tagstring>
 	<author>.</author>
 	<date>Mon Aug 12 2024</date>
