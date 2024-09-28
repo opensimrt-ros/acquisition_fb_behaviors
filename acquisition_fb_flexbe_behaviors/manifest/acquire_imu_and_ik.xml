@@ -110,6 +110,10 @@
 
 		<param type="boolean" name="run_vicon_controller" default="True" label="run_vicon_controller" hint="Sets the run_vicon_controller" />
 
+		<param type="text" name="remove_path" default="/srv/host_data" label="remove_path" hint="Sets the prefix to be removed from the save path" />
+
+		<param type="text" name="append_path" default="d:/ViconData/Ruoli/RealTime" label="append_path" hint="Sets the append_path" />
+
 	</params>
 
 

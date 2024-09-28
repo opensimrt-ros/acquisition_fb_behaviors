@@ -54,6 +54,8 @@ class acquire_imu_and_ikSM(Behavior):
 		self.add_parameter('height', '1.80 m')
 		self.add_parameter('insole_size', 'S6 (42-43)')
 		self.add_parameter('run_vicon_controller', True)
+		self.add_parameter('remove_path', '/srv/host_data')
+		self.add_parameter('append_path', 'd:/ViconData/Ruoli/RealTime')
 
 		# references to used behaviors
 		self.add_behavior(imu_startup_sequenceSM, 'Imu_Startup_Sequence')
@@ -102,6 +104,7 @@ class acquire_imu_and_ikSM(Behavior):
 		moment_arm_lib = f"'/srv/host_data/models/height_adjusted/libMomentArm_gait1992_{''.join(self.height.split()[0].split('.'))}.so'"
 		export_vars = {"MODEL_FILE":model_file,"MOMENT_ARM_LIB":moment_arm_lib,"NUM_PROC_SO":4,"SHOW_VIZ_OTHER":"true"}
 		vicon_yaml = "vicon_only.yaml"
+		vicon_vars = {"REMOVE":self.remove_path,"APPEND":self.append_path}
 		# x:1421 y:812, x:162 y:458
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
@@ -192,7 +195,7 @@ class acquire_imu_and_ikSM(Behavior):
 
 			# x:493 y:14
 			OperatableStateMachine.add('Load_Vicon_Controller_Node',
-										TmuxSetupFromYamlState(session_name=tmux_session_name, startup_yaml=tmux_yaml_path+vicon_yaml, load_env={}, append_node=["/vicon_control"]),
+										TmuxSetupFromYamlState(session_name=tmux_session_name, startup_yaml=tmux_yaml_path+vicon_yaml, load_env=vicon_vars, append_node=["/vicon_control"]),
 										transitions={'continue': 'Load_IK_nodes', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'node_start_list': 'node_start_list'})
