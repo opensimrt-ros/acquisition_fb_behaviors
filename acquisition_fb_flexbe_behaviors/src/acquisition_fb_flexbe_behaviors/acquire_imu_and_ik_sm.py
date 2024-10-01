@@ -55,7 +55,9 @@ class acquire_imu_and_ikSM(Behavior):
 		self.add_parameter('insole_size', 'S6 (42-43)')
 		self.add_parameter('run_vicon_controller', True)
 		self.add_parameter('remove_path', '/srv/host_data')
-		self.add_parameter('append_path', 'd:/ViconData/Ruoli/RealTime')
+		self.add_parameter('append_path', 'd:/ViconData/Ruoli/Motion_Insole')
+		self.add_parameter('vicon_ip', '192.168.1.103')
+		self.add_parameter('vicon_port', 1030)
 
 		# references to used behaviors
 		self.add_behavior(imu_startup_sequenceSM, 'Imu_Startup_Sequence')
@@ -104,7 +106,7 @@ class acquire_imu_and_ikSM(Behavior):
 		moment_arm_lib = f"'/srv/host_data/models/height_adjusted/libMomentArm_gait1992_{''.join(self.height.split()[0].split('.'))}.so'"
 		export_vars = {"MODEL_FILE":model_file,"MOMENT_ARM_LIB":moment_arm_lib,"NUM_PROC_SO":4,"SHOW_VIZ_OTHER":"true"}
 		vicon_yaml = "vicon_only.yaml"
-		vicon_vars = {"REMOVE":self.remove_path,"APPEND":self.append_path}
+		vicon_vars = {"REMOVE":self.remove_path,"APPEND":self.append_path,"VICON_IP":self.vicon_ip,"VICON_PORT":self.vicon_port}
 		# x:1421 y:812, x:162 y:458
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.activity_counter = 0
@@ -182,11 +184,11 @@ class acquire_imu_and_ikSM(Behavior):
 			# x:473 y:190
 			OperatableStateMachine.add('Load_Insole_Nodes',
 										TmuxSetupFromYamlState(session_name=tmux_session_name, startup_yaml=tmux_yaml_path+insole_yaml, load_env=export_vars, append_node=["/moticon_insoles"]),
-										transitions={'continue': 'Run_ID', 'failed': 'failed'},
+										transitions={'continue': 'Turn_On_Insoles', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'node_start_list': 'node_start_list'})
 
-			# x:470 y:358
+			# x:472 y:542
 			OperatableStateMachine.add('Load_SO_Nodes',
 										TmuxSetupFromYamlState(session_name=tmux_session_name, startup_yaml=tmux_yaml_path+so_yaml, load_env=export_vars, append_node=["/so_node"]),
 										transitions={'continue': 'ok', 'failed': 'failed'},
@@ -200,7 +202,7 @@ class acquire_imu_and_ikSM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'node_start_list': 'node_start_list'})
 
-			# x:280 y:228
+			# x:286 y:340
 			OperatableStateMachine.add('Run_ID',
 										CheckConditionState(predicate=lambda x: bool(x)),
 										transitions={'true': 'Load_ID_Nodes', 'false': 'ok'},
@@ -214,14 +216,20 @@ class acquire_imu_and_ikSM(Behavior):
 										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
 										remapping={'input_value': 'use_insoles'})
 
-			# x:285 y:308
+			# x:286 y:421
 			OperatableStateMachine.add('Run_SO',
 										CheckConditionState(predicate=lambda x: bool(x)),
 										transitions={'true': 'Load_SO_Nodes', 'false': 'ok'},
 										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
 										remapping={'input_value': 'use_so'})
 
-			# x:472 y:272
+			# x:504 y:283
+			OperatableStateMachine.add('Turn_On_Insoles',
+										LogState(text="Turn on Tablet and insoles and put shoes on", severity=Logger.REPORT_HINT),
+										transitions={'done': 'Run_ID'},
+										autonomy={'done': Autonomy.Full})
+
+			# x:479 y:446
 			OperatableStateMachine.add('Load_ID_Nodes',
 										TmuxSetupFromYamlState(session_name=tmux_session_name, startup_yaml=tmux_yaml_path+id_yaml, load_env=export_vars, append_node=["/id_node"]),
 										transitions={'continue': 'Run_SO', 'failed': 'failed'},

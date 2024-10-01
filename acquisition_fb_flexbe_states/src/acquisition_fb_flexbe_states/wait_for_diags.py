@@ -4,6 +4,7 @@ import tf
 from flexbe_core import EventState, Logger
 from diagnostic_msgs.msg import DiagnosticStatus,DiagnosticArray
 import traceback
+from collections import deque
 
 class WaitForDiags(EventState):
     '''
@@ -16,7 +17,7 @@ class WaitForDiags(EventState):
 
     '''
 
-    def __init__(self, diags_list, timeout=10):
+    def __init__(self, diags_list, timeout=600, response_list_size=800):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(WaitForDiags, self).__init__(outcomes = ['continue', 'failed'])
 
@@ -26,8 +27,11 @@ class WaitForDiags(EventState):
             diags_list = [diags_list]
         
         self._diags_list = diags_list
+        self._initial_diags_len = len(self._diags_list)
         self._initial_time = None
         self._timeout_time = rospy.Duration(timeout)
+        self._response_deque = deque([], maxlen=response_list_size)
+
 
     def execute(self, userdata):
         # This method is called periodically while the state is active.
@@ -36,23 +40,27 @@ class WaitForDiags(EventState):
         if len(self._diags_list) == 0:
             return 'continue'
 
+        #return 'continue'
         try:
             i=0
+            
             while len(self._diags_list) > 0:
-                Logger.loghint("looking for stuff")
+                #Logger.loghint("looking for stuff")
                 if rospy.Time.now() > self._initial_time + self._timeout_time:
                     Logger.logerr("Timeout exceeded")
                     return 'failed'
                 try:
-                    a_response = rospy.wait_for_message("/diagnostics", DiagnosticArray, timeout=0.1)
+                    some_response = rospy.wait_for_message("/diagnostics", DiagnosticArray, timeout=self._timeout_time.to_sec()/self._initial_diags_len)
+
+                    self._response_deque.append(some_response)
                 except rospy.ROSException as eee:
                     if i%100 == 1:
                         Logger.loghint(f"looking for diags from {a_diag} exceeded timeout, i think..")
                     continue
                 for a_diag in self._diags_list:
-                    if i%100 == 1:
-                        i = 0
-                        Logger.loghint(f"looking for diags from {a_diag}")
+                 #   if i%100 == 1:
+                 #       i = 0
+                    Logger.loghint(f"Looking for diags from {a_diag}")
 
                     #print(a_response.status[0])
                     #print(len(a_response.status))
@@ -60,14 +68,17 @@ class WaitForDiags(EventState):
                     #Logger.loginfo("{}".format(str(a_response.status)))
                     #Logger.loginfo("{}".format(str(a_response.status[0])))
                     #a_response = DiagnosticArray()
-                    for status in a_response.status:
-                        print(status)
-                        if a_diag in status.name: 
-                            if status.level == status.OK:
+                    for a_response in self._response_deque:
+                        for status in a_response.status:
+                            print(status)
+                            if a_diag in status.name and a_diag in self._diags_list: 
                                 self._diags_list.remove(a_diag)
-                                break
-                            else:
-                                return 'failed'
+                                if False:
+                                    if status.level == status.OK:
+                                        self._diags_list.remove(a_diag)
+                                        break
+                                    else:
+                                        return 'failed'
 
         except Exception as e:
             st = traceback.format_stack()

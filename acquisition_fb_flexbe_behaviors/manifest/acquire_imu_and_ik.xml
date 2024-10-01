@@ -112,7 +112,14 @@
 
 		<param type="text" name="remove_path" default="/srv/host_data" label="remove_path" hint="Sets the prefix to be removed from the save path" />
 
-		<param type="text" name="append_path" default="d:/ViconData/Ruoli/RealTime" label="append_path" hint="Sets the append_path" />
+		<param type="text" name="append_path" default="d:/ViconData/Ruoli/Motion_Insole" label="append_path" hint="Sets the append_path" />
+
+		<param type="text" name="vicon_ip" default="192.168.1.103" label="vicon_ip" hint="Sets the vicon_ip" />
+
+		<param type="numeric" name="vicon_port" default="1030" label="vicon_port" hint="Sets the vicon_port">
+			<min value="0" />
+			<max value="70000" />
+		</param>
 
 	</params>
 

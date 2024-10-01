@@ -35,7 +35,7 @@ class imu_startup_sequenceSM(Behavior):
 
 		# parameters of this behavior
 		self.add_parameter('dummy_imus', False)
-		self.add_parameter('wait_to_start', False)
+		self.add_parameter('wait_to_start', True)
 
 		# references to used behaviors
 
@@ -106,7 +106,7 @@ class imu_startup_sequenceSM(Behavior):
 
 			# x:422 y:187
 			OperatableStateMachine.add('imu_diags',
-										WaitForDiags(diags_list=imu_list, timeout=10),
+										WaitForDiags(diags_list=imu_list, timeout=100),
 										transitions={'continue': 'done', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
