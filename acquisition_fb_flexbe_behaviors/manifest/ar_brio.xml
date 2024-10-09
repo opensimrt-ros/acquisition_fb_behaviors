@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="ar_brio">
+
+	<executable package_path="acquisition_fb_flexbe_behaviors.ar_brio_sm" class="ar_brioSM" />
+	<tagstring>ar</tagstring>
+	<author>frekle</author>
+	<date>Wed Oct 09 2024</date>
+	<description>
+		tries to load the brio camera with the proper map orientations, the marker finder thing and the rviz visuals
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="camera_dev_num" default="4" label="camera_dev_num" hint="Sets the camera_dev_num">
+			<min value="0" />
+			<max value="10" />
+		</param>
+
+		<param type="boolean" name="load_ar_nodes" default="True" label="load_ar_nodes" hint="Sets the load_ar_nodes" />
+
+	</params>
+
+
+</behavior>
