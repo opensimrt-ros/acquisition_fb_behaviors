@@ -49,11 +49,11 @@ class Acquire_everythingSM(Behavior):
 		# parameters of this behavior
 		self.add_parameter('activity_name', 'walking')
 		self.add_parameter('subject_num', 0)
-		self.add_parameter('run_insoles', True)
+		self.add_parameter('run_insoles', False)
 		self.add_parameter('run_id', True)
 		self.add_parameter('run_so', False)
 		self.add_parameter('weight', 0)
-		self.add_parameter('height', '1.80 m')
+		self.add_parameter('height', '1.75 m')
 		self.add_parameter('insole_size', 'S6 (42-43)')
 		self.add_parameter('run_vicon_controller', True)
 		self.add_parameter('remove_path', '/srv/host_data')

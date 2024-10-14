@@ -30,7 +30,7 @@
 			<max value="100" />
 		</param>
 
-		<param type="boolean" name="run_insoles" default="True" label="run_insoles" hint="Sets the run_insoles" />
+		<param type="boolean" name="run_insoles" default="False" label="run_insoles" hint="Sets the run_insoles" />
 
 		<param type="boolean" name="run_id" default="True" label="run_id" hint="Sets the run_id" />
 
@@ -41,7 +41,7 @@
 			<max value="1" />
 		</param>
 
-		<param type="enum" name="height" default="1.80 m" label="height" hint="Sets the height">
+		<param type="enum" name="height" default="1.75 m" label="height" hint="Sets the height">
 			<option value="1.40 m" />
 			<option value="1.41 m" />
 			<option value="1.42 m" />
