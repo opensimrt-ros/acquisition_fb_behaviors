@@ -17,7 +17,7 @@ class WaitForDiags(EventState):
 
     '''
 
-    def __init__(self, diags_list, timeout=600, response_list_size=800):
+    def __init__(self, diags_list, timeout=600, response_list_size=200):
         # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
         super(WaitForDiags, self).__init__(outcomes = ['continue', 'failed'])
 
@@ -32,6 +32,14 @@ class WaitForDiags(EventState):
         self._timeout_time = rospy.Duration(timeout)
         self._response_deque = deque([], maxlen=response_list_size)
 
+    def remove_from_diags_list_if_matches(self, a_diag):
+        for a_response in self._response_deque:
+            for status in a_response.status:
+                if a_diag in status.name and a_diag in self._diags_list:
+                    self._diags_list.remove(a_diag)
+                    return True
+        return False
+
 
     def execute(self, userdata):
         # This method is called periodically while the state is active.
@@ -45,40 +53,18 @@ class WaitForDiags(EventState):
             i=0
             
             while len(self._diags_list) > 0:
-                #Logger.loghint("looking for stuff")
+                Logger.loghint(f"looking for stuff\nState:\n{self._diags_list}\n{self._response_deque}")
                 if rospy.Time.now() > self._initial_time + self._timeout_time:
                     Logger.logerr("Timeout exceeded")
                     return 'failed'
-                try:
-                    some_response = rospy.wait_for_message("/diagnostics", DiagnosticArray, timeout=self._timeout_time.to_sec()/self._initial_diags_len)
+                some_response = rospy.wait_for_message("/diagnostics", DiagnosticArray, timeout=self._timeout_time.to_sec()/self._initial_diags_len)
+                self._response_deque.append(some_response)
 
-                    self._response_deque.append(some_response)
-                except rospy.ROSException as eee:
-                    if i%100 == 1:
-                        Logger.loghint(f"looking for diags from {a_diag} exceeded timeout, i think..")
-                    continue
                 for a_diag in self._diags_list:
-                 #   if i%100 == 1:
-                 #       i = 0
                     Logger.loghint(f"Looking for diags from {a_diag}")
 
-                    #print(a_response.status[0])
-                    #print(len(a_response.status))
-                    #Logger.loginfo("{}".format(str(a_response)))
-                    #Logger.loginfo("{}".format(str(a_response.status)))
-                    #Logger.loginfo("{}".format(str(a_response.status[0])))
-                    #a_response = DiagnosticArray()
-                    for a_response in self._response_deque:
-                        for status in a_response.status:
-                            print(status)
-                            if a_diag in status.name and a_diag in self._diags_list: 
-                                self._diags_list.remove(a_diag)
-                                if False:
-                                    if status.level == status.OK:
-                                        self._diags_list.remove(a_diag)
-                                        break
-                                    else:
-                                        return 'failed'
+                    if self.remove_from_diags_list_if_matches(a_diag):
+                        break
 
         except Exception as e:
             st = traceback.format_stack()
