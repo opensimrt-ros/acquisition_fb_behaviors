@@ -38,7 +38,7 @@ import rospkg
 Created on Wed Oct 23 2024
 @author: frekle
 '''
-class Acquire_EverythingSM(Behavior):
+class Acquire_Everything_RCSM(Behavior):
 	'''
 	acquire using embeddable IMU behavior
 - with tmux 
@@ -51,14 +51,14 @@ class Acquire_EverythingSM(Behavior):
 
 
 	def __init__(self):
-		super(Acquire_EverythingSM, self).__init__()
-		self.name = 'Acquire_Everything'
+		super(Acquire_Everything_RCSM, self).__init__()
+		self.name = 'Acquire_Everything_RC'
 
 		# parameters of this behavior
 		self.add_parameter('run_insoles', True)
 		self.add_parameter('run_id', True)
 		self.add_parameter('run_so', True)
-		self.add_parameter('run_vicon_controller', True)
+		self.add_parameter('run_vicon_controller', False)
 		self.add_parameter('remove_path', '/srv/host_data')
 		self.add_parameter('append_path', 'd:/ViconData')
 		self.add_parameter('vicon_ip', '192.168.1.103')
@@ -74,7 +74,7 @@ class Acquire_EverythingSM(Behavior):
 		self.add_parameter('show_viz_extensive', False)
 		self.add_parameter('record_rosbag', False)
 		self.add_parameter('dummy_insoles', True)
-		self.add_parameter('insole_delay', 0.140)
+		self.add_parameter('insole_delay', 0.0)
 
 		# references to used behaviors
 		self.add_behavior(imu_startup_sequenceSM, 'Imu_Startup_Sequence')
@@ -117,9 +117,9 @@ class Acquire_EverythingSM(Behavior):
 		tmux_yaml_path = self.find_pkg("acquisition_of_raw_data")+"/config/"
 		imu_list = ["torso","pelvis","femur_r","tibia_r","talus_r","femur_l","tibia_l","talus_l"]
 		calib_sound_file = "/srv/host_data/calib.wav"
-		ik_yaml = "plus_ik.yaml"
+		ik_yaml = "plus_ik_no_vis.yaml"
 		insole_yaml = "dummy_insoles.yaml" if self.dummy_insoles else "insoles_only.yaml"
-		id_yaml = "id_only.yaml"
+		id_yaml = "id_no_vis.yaml"
 		so_yaml = "so_only.yaml"
 		vicon_yaml = "vicon_only.yaml"
 		vicon_vars = {"REMOVE":self.remove_path,"APPEND":self.append_path,"VICON_IP":self.vicon_ip,"VICON_PORT":self.vicon_port}
